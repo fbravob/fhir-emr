@@ -22,14 +22,17 @@ launchContext:
     description: Appointment date passing from calendar
 contained:
   - resourceType: Bundle
-    id: PractitionerRoleWithPractitioner
+    id: ResourcesBundle
     type: transaction
     entry:
       - request:
           method: GET
           url: /PractitionerRole?_id={{%practitionerRole.id}}&_include=practitioner
+      - request:
+          method: GET
+          url: /HealthcareService?service-type=consultation,follow-up
 sourceQueries:
-  - localRef: "Bundle#PractitionerRoleWithPractitioner"
+  - localRef: "Bundle#ResourcesBundle"
 item:
   - type: group
     linkId: root-group
@@ -41,7 +44,7 @@ item:
         initialExpression:
           language: text/fhirpath
           expression: >-
-            %PractitionerRoleWithPractitioner.entry.resource
+            %ResourcesBundle.entry.resource
             .entry.resource.where(resourceType='PractitionerRole').id
       - text: Predefined practitioner role display
         type: string
@@ -50,13 +53,13 @@ item:
         itemPopulationContext:
           language: text/fhirpath
           expression: >-
-            %PractitionerRoleWithPractitioner.entry.resource
+            %ResourcesBundle.entry.resource
             .entry.resource.where(resourceType='Practitioner')
         initialExpression:
           language: text/fhirpath
           expression: >-
             name.given.first() + ' ' + name.family + ' - '
-            + %PractitionerRoleWithPractitioner.entry.resource
+            + %ResourcesBundle.entry.resource
             .entry.resource.where(resourceType='PractitionerRole').specialty.first().coding.display
       - text: Practitioner
         type: reference
@@ -134,6 +137,23 @@ item:
         initialExpression:
           language: text/fhirpath
           expression: "%appointment.start"
+      - text: End time
+        required: true
+        type: dateTime
+        readOnly: true
+        linkId: end-datetime
+        calculatedExpression:
+          language: text/fhirpath
+          expression: >-
+            %QuestionnaireResponse.repeat(item).where(linkId='start-datetime').answer. valueDateTime
+            +
+            %ResourcesBundle.entry.resource.entry.resource
+            .where(resourceType='HealthcareService')
+            .where(
+              type.coding.code=%QuestionnaireResponse.repeat(item)
+              .where(linkId='service-type').answer.valueCoding.code
+            ).extension
+            .where(url='urn:extensions:healthcare-service-duration').valueInteger
 meta:
   profile:
     - https://beda.software/beda-emr-questionnaire
