@@ -573,7 +573,7 @@ msgstr "La factura fue pagada con éxito"
 #: src/components/BaseLayout/Sidebar/SidebarTop/index.tsx:61
 #: src/containers/InvoiceList/index.tsx:44
 msgid "Invoices"
-msgstr "Facturas"
+msgstr "Recibos"
 
 #: src/containers/InvoiceDetails/index.tsx:67
 msgid "Item"
